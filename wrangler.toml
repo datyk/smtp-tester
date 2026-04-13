@@ -1,0 +1,7 @@
+name = "smtp-tester"
+main = "src/index.js"
+compatibility_date = "2026-04-13"
+compatibility_flags = ["nodejs_compat"]
+
+[assets]
+directory = "./public"

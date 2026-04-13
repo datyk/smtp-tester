@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SMTP Tester — Live SMTP Protocol Testing Tool</title>
+  <meta name="description" content="Test SMTP server connections with live, color-coded protocol conversation viewer. Supports SSL/TLS, STARTTLS, and authentication.">
+  <meta name="theme-color" content="#0a0e1a">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <!-- Header -->
+  <header id="app-header">
+    <div class="header-content">
+      <div class="header-brand">
+        <div class="header-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+            <polyline points="22,6 12,13 2,6"/>
+          </svg>
+        </div>
+        <div>
+          <h1>SMTP Tester</h1>
+          <p class="header-subtitle">Live SMTP protocol testing tool</p>
+        </div>
+      </div>
+      <div class="header-meta">
+        <span class="header-badge">smtp-tester.tyk.app</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Layout -->
+  <main id="app-main">
+    <!-- Configuration Panel -->
+    <section id="config-panel" class="glass-card">
+      <div class="panel-header">
+        <h2>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="panel-icon">
+            <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+          Configuration
+        </h2>
+      </div>
+
+      <form id="smtp-form" autocomplete="off">
+        <!-- Server Section -->
+        <div class="form-section">
+          <h3 class="form-section-title">Server</h3>
+          <div class="form-group">
+            <label for="smtp-host">SMTP Host</label>
+            <input type="text" id="smtp-host" placeholder="mail.example.com" required>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group form-group-port">
+              <label for="smtp-port">Port</label>
+              <input type="number" id="smtp-port" value="587" min="1" max="65535" required>
+            </div>
+            <div class="port-presets">
+              <button type="button" class="preset-btn" data-port="465" data-security="ssl">465</button>
+              <button type="button" class="preset-btn active" data-port="587" data-security="starttls">587</button>
+              <button type="button" class="preset-btn" data-port="2525" data-security="none">2525</button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="smtp-security">Security</label>
+            <div class="security-options">
+              <label class="radio-card" id="security-none-card">
+                <input type="radio" name="security" value="none" id="security-none">
+                <span class="radio-card-inner">
+                  <span class="radio-card-icon">🔓</span>
+                  <span class="radio-card-label">None</span>
+                </span>
+              </label>
+              <label class="radio-card" id="security-starttls-card">
+                <input type="radio" name="security" value="starttls" id="security-starttls" checked>
+                <span class="radio-card-inner">
+                  <span class="radio-card-icon">🔄</span>
+                  <span class="radio-card-label">STARTTLS</span>
+                </span>
+              </label>
+              <label class="radio-card" id="security-ssl-card">
+                <input type="radio" name="security" value="ssl" id="security-ssl">
+                <span class="radio-card-inner">
+                  <span class="radio-card-icon">🔒</span>
+                  <span class="radio-card-label">SSL/TLS</span>
+                </span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Auth Section -->
+        <div class="form-section">
+          <h3 class="form-section-title">
+            Authentication
+            <label class="toggle-switch" for="auth-toggle">
+              <input type="checkbox" id="auth-toggle">
+              <span class="toggle-slider"></span>
+            </label>
+          </h3>
+
+          <div id="auth-fields" class="auth-fields hidden">
+            <div class="form-group">
+              <label for="smtp-username">Username</label>
+              <input type="text" id="smtp-username" placeholder="user@example.com" autocomplete="off">
+            </div>
+            <div class="form-group">
+              <label for="smtp-password">Password</label>
+              <input type="password" id="smtp-password" placeholder="••••••••" autocomplete="new-password">
+            </div>
+          </div>
+        </div>
+
+        <!-- Envelope Section -->
+        <div class="form-section">
+          <h3 class="form-section-title">Envelope <span class="optional-badge">Optional</span></h3>
+
+          <div class="form-group">
+            <label for="smtp-mail-from">MAIL FROM</label>
+            <input type="email" id="smtp-mail-from" placeholder="sender@example.com">
+          </div>
+          <div class="form-group">
+            <label for="smtp-rcpt-to">RCPT TO</label>
+            <input type="email" id="smtp-rcpt-to" placeholder="recipient@example.com">
+          </div>
+
+          <div id="send-test-wrapper" class="send-test-wrapper hidden">
+            <label class="checkbox-row" for="send-test-email">
+              <input type="checkbox" id="send-test-email">
+              <span>Send a fixed test email</span>
+            </label>
+            <p class="form-hint">Sends a non-customizable verification email to prevent abuse.</p>
+          </div>
+        </div>
+
+        <!-- Port 25 Warning -->
+        <div id="port25-warning" class="warning-banner hidden">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="warning-icon">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+          <div>
+            <strong>Port 25 is blocked</strong>
+            <p>Cloudflare Workers cannot connect to port 25. Use port 587 (STARTTLS) or 465 (SSL/TLS) instead.</p>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="form-actions">
+          <button type="submit" id="btn-test" class="btn-primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon">
+              <polygon points="5 3 19 12 5 21 5 3"/>
+            </svg>
+            <span>Run Test</span>
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Conversation Terminal -->
+    <section id="terminal-panel">
+      <div class="terminal-header">
+        <div class="terminal-title">
+          <div class="terminal-dots">
+            <span class="dot dot-red"></span>
+            <span class="dot dot-yellow"></span>
+            <span class="dot dot-green"></span>
+          </div>
+          <span>SMTP Conversation</span>
+        </div>
+        <div class="terminal-actions">
+          <div id="test-status" class="status-indicator">
+            <span class="status-dot"></span>
+            <span class="status-text">Ready</span>
+          </div>
+          <div class="export-dropdown" id="export-dropdown">
+            <button type="button" id="btn-export" class="btn-icon-action" title="Export conversation" disabled>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+            </button>
+            <div class="export-menu hidden" id="export-menu">
+              <button type="button" class="export-option" data-format="json">
+                <span class="export-format">JSON</span>
+                <span class="export-desc">Structured data</span>
+              </button>
+              <button type="button" class="export-option" data-format="text">
+                <span class="export-format">Text</span>
+                <span class="export-desc">Plain text log</span>
+              </button>
+              <button type="button" class="export-option" data-format="transcript">
+                <span class="export-format">Transcript</span>
+                <span class="export-desc">RFC 5321 session</span>
+              </button>
+            </div>
+          </div>
+          <button type="button" id="btn-clear" class="btn-icon-action" title="Clear log">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="3 6 5 6 21 6"/>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div id="terminal-body" class="terminal-body">
+        <div id="terminal-log" class="terminal-log">
+          <div class="terminal-welcome">
+            <p>Welcome to <strong>SMTP Tester</strong></p>
+            <p class="dim">Configure your SMTP server settings and click <strong>Run Test</strong> to start.</p>
+            <p class="dim">The SMTP conversation will appear here in real-time.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer id="app-footer">
+    <p>SMTP Tester by <a href="https://tyk.no" target="_blank" rel="noopener">tyk.no</a> — No credentials are stored.</p>
+  </footer>
+
+  <script src="/js/export.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>
