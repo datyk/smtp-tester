@@ -53,16 +53,9 @@
     });
   });
 
-  // --- Port input change → auto-select security ---
+  // --- Port input change ---
   portInput.addEventListener('input', () => {
     const port = parseInt(portInput.value);
-
-    // Auto-select security based on port
-    if (port === 465) {
-      document.getElementById('security-ssl').checked = true;
-    } else if (port === 587) {
-      document.getElementById('security-starttls').checked = true;
-    }
 
     // Update preset button active state
     presetBtns.forEach(btn => {
@@ -72,20 +65,9 @@
     checkPort25();
   });
 
-  // --- Security change → auto-update port ---
+  // --- Security change ---
   securityRadios.forEach(radio => {
     radio.addEventListener('change', () => {
-      const security = radio.value;
-      if (security === 'ssl' && portInput.value !== '465') {
-        portInput.value = 465;
-      } else if (security === 'starttls' && portInput.value === '465') {
-        portInput.value = 587;
-      }
-
-      presetBtns.forEach(btn => {
-        btn.classList.toggle('active', parseInt(btn.dataset.port) === parseInt(portInput.value));
-      });
-
       checkPort25();
     });
   });
@@ -102,13 +84,9 @@
     authFields.classList.toggle('hidden', !authToggle.checked);
   });
 
-  // --- MAIL FROM / RCPT TO → show send test option ---
+  // Envelope fields are now always visible and required
   function checkEnvelopeFields() {
-    const hasEnvelope = mailFromInput.value.trim() && rcptToInput.value.trim();
-    sendTestWrapper.classList.toggle('hidden', !hasEnvelope);
-    if (!hasEnvelope) {
-      sendTestCheckbox.checked = false;
-    }
+    // No-op or keep for future enhancements
   }
 
   mailFromInput.addEventListener('input', checkEnvelopeFields);
@@ -172,6 +150,14 @@
     // Validate
     if (!config.host) {
       hostInput.focus();
+      return;
+    }
+    if (!config.mailFrom) {
+      mailFromInput.focus();
+      return;
+    }
+    if (!config.rcptTo) {
+      rcptToInput.focus();
       return;
     }
 

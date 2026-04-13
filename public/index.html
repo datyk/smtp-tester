@@ -119,18 +119,18 @@
 
         <!-- Envelope Section -->
         <div class="form-section">
-          <h3 class="form-section-title">Envelope <span class="optional-badge">Optional</span></h3>
+          <h3 class="form-section-title">Envelope</h3>
 
           <div class="form-group">
             <label for="smtp-mail-from">MAIL FROM</label>
-            <input type="email" id="smtp-mail-from" placeholder="sender@example.com">
+            <input type="email" id="smtp-mail-from" placeholder="sender@example.com" required>
           </div>
           <div class="form-group">
             <label for="smtp-rcpt-to">RCPT TO</label>
-            <input type="email" id="smtp-rcpt-to" placeholder="recipient@example.com">
+            <input type="email" id="smtp-rcpt-to" placeholder="recipient@example.com" required>
           </div>
 
-          <div id="send-test-wrapper" class="send-test-wrapper hidden">
+          <div id="send-test-wrapper" class="send-test-wrapper">
             <label class="checkbox-row" for="send-test-email">
               <input type="checkbox" id="send-test-email">
               <span>Send a fixed test email</span>

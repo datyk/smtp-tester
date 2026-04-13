@@ -95,9 +95,9 @@ async function handleSmtpTest(request, ctx) {
   }
 
   // Validate required fields
-  if (!config.host || !config.port) {
+  if (!config.host || !config.port || !config.mailFrom || !config.rcptTo) {
     return new Response(
-      JSON.stringify({ error: 'Missing required fields: host, port' }),
+      JSON.stringify({ error: 'Missing required fields: host, port, mailFrom, rcptTo' }),
       { status: 400, headers: { 'Content-Type': 'application/json' } }
     );
   }

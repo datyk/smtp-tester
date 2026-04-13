@@ -6,12 +6,12 @@ import { connect } from 'cloudflare:sockets';
  */
 
 const SMTP_TIMEOUT = 15000; // 15 seconds per command
-const EHLO_DOMAIN = 'smtp-tester.tyk.app';
+const FALLBACK_DOMAIN = 'tyk.app';
 
 // Fixed test email body to prevent abuse
 const TEST_EMAIL_BODY = [
   'Subject: SMTP Tester - Connection Verification',
-  'From: smtp-tester@tyk.app',
+  'From: {MAIL_FROM}',
   'To: {RCPT_TO}',
   'Date: {DATE}',
   'Message-ID: <smtp-test-{ID}@tyk.app>',
@@ -68,7 +68,13 @@ export async function runSmtpTest(config, stream) {
 
     await stream.emit('tls', `TCP connection established (transport: ${secureTransport})`);
 
-    // --- 3. Read server greeting ---
+    // --- 3. Determine EHLO domain ---
+    let ehloDomain = FALLBACK_DOMAIN;
+    if (mailFrom && mailFrom.includes('@')) {
+      ehloDomain = mailFrom.split('@').pop() || FALLBACK_DOMAIN;
+    }
+
+    // --- 4. Read server greeting ---
     const greeting = await readResponse(reader, decoder, buffer);
     buffer = greeting.remaining;
     await stream.emit('received', greeting.response);
@@ -78,8 +84,8 @@ export async function runSmtpTest(config, stream) {
       return;
     }
 
-    // --- 4. Send EHLO ---
-    await sendCommand(writer, encoder, `EHLO ${EHLO_DOMAIN}`, stream);
+    // --- 5. Send EHLO ---
+    await sendCommand(writer, encoder, `EHLO ${ehloDomain}`, stream);
     const ehloResp = await readResponse(reader, decoder, buffer);
     buffer = ehloResp.remaining;
     await stream.emit('received', ehloResp.response);
@@ -122,7 +128,7 @@ export async function runSmtpTest(config, stream) {
       buffer = '';
 
       // Re-send EHLO after TLS upgrade
-      await sendCommand(writer, encoder, `EHLO ${EHLO_DOMAIN}`, stream);
+      await sendCommand(writer, encoder, `EHLO ${ehloDomain}`, stream);
       const ehlo2Resp = await readResponse(reader, decoder, buffer);
       buffer = ehlo2Resp.remaining;
       await stream.emit('received', ehlo2Resp.response);
@@ -199,6 +205,7 @@ export async function runSmtpTest(config, stream) {
             const msgId = crypto.randomUUID().slice(0, 8);
             const date = new Date().toUTCString();
             const body = TEST_EMAIL_BODY
+              .replace('{MAIL_FROM}', mailFrom)
               .replace('{RCPT_TO}', rcptTo)
               .replace('{DATE}', date)
               .replace('{ID}', msgId);
