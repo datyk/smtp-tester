@@ -1,6 +1,7 @@
 /**
- * SMTP Tester — Frontend Application
- * Handles form interaction, SSE streaming, and terminal rendering.
+ * SMTP Tester v2.0 — Frontend Application
+ * Handles form interaction, SSE streaming, terminal rendering,
+ * theme toggle, keyboard shortcuts, and clipboard copy.
  */
 
 (function () {
@@ -23,6 +24,7 @@
   const btnTest = document.getElementById('btn-test');
   const btnExport = document.getElementById('btn-export');
   const btnClear = document.getElementById('btn-clear');
+  const btnCopy = document.getElementById('btn-copy');
   const exportDropdown = document.getElementById('export-dropdown');
   const exportMenu = document.getElementById('export-menu');
   const exportOptions = document.querySelectorAll('.export-option');
@@ -31,11 +33,29 @@
   const terminalBody = document.getElementById('terminal-body');
   const statusIndicator = document.getElementById('test-status');
   const statusText = statusIndicator.querySelector('.status-text');
+  const themeToggle = document.getElementById('theme-toggle');
 
   // --- State ---
   let isRunning = false;
   let abortController = null;
   let events = [];
+
+  // --- Theme toggle ---
+  function initTheme() {
+    const saved = localStorage.getItem('smtp-theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const theme = saved || (prefersDark ? 'dark' : 'dark'); // Default to dark
+    document.documentElement.setAttribute('data-theme', theme);
+  }
+
+  themeToggle.addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme');
+    const next = current === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('smtp-theme', next);
+  });
+
+  initTheme();
 
   // --- Port preset buttons ---
   presetBtns.forEach(btn => {
@@ -84,14 +104,6 @@
     authFields.classList.toggle('hidden', !authToggle.checked);
   });
 
-  // Envelope fields are now always visible and required
-  function checkEnvelopeFields() {
-    // No-op or keep for future enhancements
-  }
-
-  mailFromInput.addEventListener('input', checkEnvelopeFields);
-  rcptToInput.addEventListener('input', checkEnvelopeFields);
-
   // --- Export dropdown ---
   btnExport.addEventListener('click', (e) => {
     e.stopPropagation();
@@ -112,9 +124,57 @@
     });
   });
 
+  // --- Copy to clipboard ---
+  btnCopy.addEventListener('click', async () => {
+    if (events.length === 0) return;
+
+    const text = events.map(e => {
+      const prefixes = { sent: 'C:', received: 'S:', info: 'ℹ', error: '✖', tls: '🔒', complete: '✔' };
+      const time = new Date(e.timestamp).toLocaleTimeString('en-GB', {
+        hour: '2-digit', minute: '2-digit', second: '2-digit',
+      });
+      return `[${time}] ${prefixes[e.type] || '·'} ${e.data}`;
+    }).join('\n');
+
+    try {
+      await navigator.clipboard.writeText(text);
+      // Brief visual feedback
+      const origTitle = btnCopy.title;
+      btnCopy.title = 'Copied!';
+      btnCopy.style.color = 'var(--text-link)';
+      setTimeout(() => {
+        btnCopy.title = origTitle;
+        btnCopy.style.color = '';
+      }, 1500);
+    } catch (e) {
+      // Fallback for older browsers
+      console.warn('Clipboard write failed:', e);
+    }
+  });
+
   // --- Clear button ---
   btnClear.addEventListener('click', () => {
     clearTerminal();
+  });
+
+  // --- Keyboard shortcuts ---
+  document.addEventListener('keydown', (e) => {
+    // Ctrl+Enter → Run test
+    if (e.ctrlKey && e.key === 'Enter') {
+      e.preventDefault();
+      if (!isRunning) {
+        form.requestSubmit();
+      }
+    }
+    // Ctrl+K → Clear log
+    if (e.ctrlKey && e.key === 'k') {
+      e.preventDefault();
+      clearTerminal();
+    }
+    // Escape → Stop running test
+    if (e.key === 'Escape' && isRunning && abortController) {
+      abortController.abort();
+    }
   });
 
   // --- Form submit ---
@@ -135,10 +195,11 @@
   // --- Start SMTP test ---
   async function startTest() {
     // Collect config
+    const securityValue = document.querySelector('input[name="security"]:checked').value;
     const config = {
       host: hostInput.value.trim(),
       port: parseInt(portInput.value),
-      security: document.querySelector('input[name="security"]:checked').value,
+      security: securityValue,
       auth: authToggle.checked,
       username: authToggle.checked ? usernameInput.value.trim() : null,
       password: authToggle.checked ? passwordInput.value : null,
@@ -171,6 +232,7 @@
     btnTest.querySelector('span').textContent = 'Stop Test';
     btnTest.querySelector('.btn-icon').innerHTML = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
     btnExport.disabled = true;
+    btnCopy.disabled = true;
     setStatus('running', 'Testing...');
 
     // Disable form inputs
@@ -213,7 +275,7 @@
             try {
               const event = JSON.parse(line.slice(6));
               events.push(event);
-              appendLogLine(event.type, event.timestamp, event.data);
+              appendLogLine(event.type, event.timestamp, event.data, event.elapsed);
             } catch (e) {
               // Invalid JSON, skip
             }
@@ -243,6 +305,7 @@
     btnTest.querySelector('span').textContent = 'Run Test';
     btnTest.querySelector('.btn-icon').innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>';
     btnExport.disabled = events.length === 0;
+    btnCopy.disabled = events.length === 0;
 
     setFormDisabled(false);
     setStatus(hasError ? 'error' : 'complete', hasError ? 'Error' : 'Complete');
@@ -267,7 +330,7 @@
     complete: '✔',
   };
 
-  function appendLogLine(type, timestamp, data) {
+  function appendLogLine(type, timestamp, data, elapsed) {
     // Remove welcome message if present
     const welcome = terminalLog.querySelector('.terminal-welcome');
     if (welcome) welcome.remove();
@@ -299,6 +362,14 @@
     line.appendChild(prefixSpan);
     line.appendChild(contentSpan);
 
+    // Add timing badge if available
+    if (elapsed !== undefined && elapsed !== null) {
+      const timingSpan = document.createElement('span');
+      timingSpan.className = 'log-timing';
+      timingSpan.textContent = `${elapsed}ms`;
+      line.appendChild(timingSpan);
+    }
+
     terminalLog.appendChild(line);
 
     // Auto-scroll to bottom
@@ -309,6 +380,7 @@
     terminalLog.innerHTML = '';
     events = [];
     btnExport.disabled = true;
+    btnCopy.disabled = true;
     setStatus('', 'Ready');
 
     // Re-add welcome message
@@ -346,5 +418,4 @@
 
   // --- Initial state ---
   checkPort25();
-  checkEnvelopeFields();
 })();

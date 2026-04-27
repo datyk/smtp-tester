@@ -1,5 +1,5 @@
 /* ============================================================
-   SMTP Tester — Premium Dark Theme
+   SMTP Tester v2.0 — Dark/Light Theme (tyk.no palette)
    ============================================================ */
 
 /* --- Reset & Base --- */
@@ -10,45 +10,45 @@
 }
 
 :root {
-  /* Core palette from tyk.no */
-  --bg-primary: #0b0e14;
-  --bg-secondary: #0f121a;
-  --bg-card: rgba(18, 22, 32, 0.7);
-  --bg-card-hover: rgba(24, 30, 42, 0.8);
-  --bg-input: rgba(7, 10, 15, 0.8);
-  --bg-terminal: #07090e;
+  /* Core palette — tyk.no teal */
+  --bg-primary: #12121a;
+  --bg-secondary: #181822;
+  --bg-card: rgba(24, 24, 38, 0.7);
+  --bg-card-hover: rgba(30, 30, 46, 0.8);
+  --bg-input: rgba(10, 10, 18, 0.8);
+  --bg-terminal: #0a0a14;
 
   /* Borders */
   --border-subtle: rgba(148, 163, 184, 0.12);
-  --border-glow: rgba(128, 237, 153, 0.25);
+  --border-glow: rgba(152, 232, 205, 0.25);
   --border-input: rgba(148, 163, 184, 0.18);
-  --border-input-focus: rgba(128, 237, 153, 0.6);
+  --border-input-focus: rgba(152, 232, 205, 0.6);
 
   /* Text */
   --text-primary: #f8fafc;
   --text-secondary: #94a3b8;
   --text-muted: #64748b;
-  --text-link: #80ed99;
+  --text-link: #98e8cd;
 
   /* Accent gradient */
-  --gradient-accent: linear-gradient(135deg, #80ed99 0%, #57cc99 100%);
-  --gradient-header: linear-gradient(135deg, #0b0e14 0%, #151a24 100%);
-  --gradient-btn: linear-gradient(135deg, #80ed99 0%, #57cc99 100%);
-  --gradient-btn-hover: linear-gradient(135deg, #97f2ac 0%, #6ce0ae 100%);
+  --gradient-accent: linear-gradient(135deg, #98e8cd 0%, #6ec4a8 100%);
+  --gradient-header: linear-gradient(135deg, #12121a 0%, #1c1c2a 100%);
+  --gradient-btn: linear-gradient(135deg, #98e8cd 0%, #6ec4a8 100%);
+  --gradient-btn-hover: linear-gradient(135deg, #aeefd8 0%, #82d4b8 100%);
 
-  /* Log colors - Harmonized with mint theme */
-  --color-sent: #80ed99;
+  /* Log colors — teal-harmonized */
+  --color-sent: #98e8cd;
   --color-received: #38bdf8;
   --color-info: #fbbf24;
   --color-error: #f87171;
   --color-tls: #c084fc;
-  --color-complete: #80ed99;
+  --color-complete: #98e8cd;
 
   /* Effects */
   --shadow-card: 0 4px 30px rgba(0, 0, 0, 0.5);
-  --shadow-glow: 0 0 20px rgba(128, 237, 153, 0.1);
-  --shadow-btn: 0 4px 14px rgba(128, 237, 153, 0.3);
-  --shadow-btn-hover: 0 6px 20px rgba(128, 237, 153, 0.45);
+  --shadow-glow: 0 0 20px rgba(152, 232, 205, 0.1);
+  --shadow-btn: 0 4px 14px rgba(152, 232, 205, 0.3);
+  --shadow-btn-hover: 0 6px 20px rgba(152, 232, 205, 0.45);
 
   /* Spacing */
   --radius-sm: 4px;
@@ -57,7 +57,7 @@
   --radius-xl: 16px;
 
   /* Typography */
-  --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-ui: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-mono: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', monospace;
 }
 
@@ -125,6 +125,12 @@ body {
   flex-shrink: 0;
 }
 
+.header-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
 .header-icon svg {
   width: 24px;
   height: 24px;
@@ -148,8 +154,8 @@ body {
   font-family: var(--font-mono);
   font-size: 0.7rem;
   padding: 0.35rem 0.85rem;
-  background: rgba(128, 237, 153, 0.06);
-  border: 1px solid rgba(128, 237, 153, 0.15);
+  background: rgba(152, 232, 205, 0.06);
+  border: 1px solid rgba(152, 232, 205, 0.15);
   border-radius: 6px;
   color: var(--text-link);
   opacity: 0.8;
@@ -280,7 +286,7 @@ body {
 
 .form-group input::placeholder {
   color: var(--text-muted);
-  opacity: 0.6;
+  opacity: 0.85;
 }
 
 /* Port row */
@@ -320,8 +326,8 @@ body {
 }
 
 .preset-btn.active {
-  background: rgba(128, 237, 153, 0.1);
-  border-color: rgba(128, 237, 153, 0.4);
+  background: rgba(152, 232, 205, 0.1);
+  border-color: rgba(152, 232, 205, 0.4);
   color: var(--text-link);
 }
 
@@ -354,9 +360,9 @@ body {
 }
 
 .radio-card input:checked + .radio-card-inner {
-  background: rgba(128, 237, 153, 0.08);
-  border-color: rgba(128, 237, 153, 0.4);
-  box-shadow: 0 0 12px rgba(128, 237, 153, 0.05);
+  background: rgba(152, 232, 205, 0.08);
+  border-color: rgba(152, 232, 205, 0.4);
+  box-shadow: 0 0 12px rgba(152, 232, 205, 0.05);
 }
 
 .radio-card:hover .radio-card-inner {
@@ -410,7 +416,7 @@ body {
 }
 
 .toggle-switch input:checked + .toggle-slider {
-  background: rgba(128, 237, 153, 0.3);
+  background: rgba(152, 232, 205, 0.3);
 }
 
 .toggle-switch input:checked + .toggle-slider::before {
@@ -427,28 +433,26 @@ body {
   display: none;
 }
 
-/* Checkbox row */
-.checkbox-row {
+/* Send test toggle row */
+.send-test-toggle-row {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  cursor: pointer;
-  font-size: 0.82rem;
-  color: var(--text-secondary);
+  justify-content: space-between;
 }
 
-.checkbox-row input[type="checkbox"] {
-  width: 16px;
-  height: 16px;
-  accent-color: #6c63ff;
-  cursor: pointer;
+.send-test-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .send-test-wrapper {
   margin-top: 0.5rem;
   padding: 0.6rem 0.75rem;
-  background: rgba(128, 237, 153, 0.04);
-  border: 1px solid rgba(128, 237, 153, 0.1);
+  background: rgba(152, 232, 205, 0.04);
+  border: 1px solid rgba(152, 232, 205, 0.1);
   border-radius: var(--radius-sm);
 }
 
@@ -510,10 +514,10 @@ body {
   background: var(--gradient-btn);
   border: none;
   border-radius: var(--radius-md);
-  color: white;
+  color: #0a0a14;
   font-family: var(--font-ui);
   font-size: 0.9rem;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -584,20 +588,7 @@ body {
   color: var(--text-secondary);
 }
 
-.terminal-dots {
-  display: flex;
-  gap: 6px;
-}
-
-.dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-}
-
-.dot-red { background: #ff5f56; }
-.dot-yellow { background: #ffbd2e; }
-.dot-green { background: #27c93f; }
+/* macOS dots removed in v2.0 */
 
 .terminal-actions {
   display: flex;
@@ -714,7 +705,7 @@ body {
 }
 
 .export-option:hover {
-  background: rgba(128, 237, 153, 0.08);
+  background: rgba(152, 232, 205, 0.08);
   color: var(--text-link);
 }
 
@@ -880,7 +871,7 @@ body {
 
 @media (max-width: 500px) {
   .security-options {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .form-row {
@@ -896,4 +887,111 @@ body {
     flex: 1;
     text-align: center;
   }
+}
+
+/* --- Light Mode --- */
+[data-theme="light"] {
+  --bg-primary: #e4e4ec;
+  --bg-secondary: #d8d8e2;
+  --bg-card: rgba(230, 230, 240, 0.85);
+  --bg-card-hover: rgba(220, 220, 232, 0.9);
+  --bg-input: rgba(215, 215, 228, 0.9);
+  --bg-terminal: #eaeaf0;
+  --text-primary: #1a1a2e;
+  --text-secondary: #3a3a58;
+  --text-muted: #686888;
+  --text-link: #1e8a6b;
+  --border-subtle: rgba(0, 0, 0, 0.1);
+  --border-glow: rgba(30, 138, 107, 0.25);
+  --border-input: rgba(0, 0, 0, 0.15);
+  --border-input-focus: rgba(30, 138, 107, 0.6);
+  --gradient-accent: linear-gradient(135deg, #1e8a6b 0%, #167a5c 100%);
+  --gradient-header: linear-gradient(135deg, #e4e4ec 0%, #d8d8e2 100%);
+  --gradient-btn: linear-gradient(135deg, #1e8a6b 0%, #167a5c 100%);
+  --gradient-btn-hover: linear-gradient(135deg, #259e7a 0%, #1c9068 100%);
+  --color-sent: #167a5c;
+  --color-received: #1d4ed8;
+  --color-info: #b45309;
+  --color-error: #b91c1c;
+  --color-tls: #6d28d9;
+  --color-complete: #167a5c;
+  --shadow-card: 0 2px 16px rgba(0, 0, 0, 0.08);
+  --shadow-glow: 0 0 20px rgba(30, 138, 107, 0.1);
+  --shadow-btn: 0 4px 14px rgba(30, 138, 107, 0.3);
+  --shadow-btn-hover: 0 6px 20px rgba(30, 138, 107, 0.4);
+}
+
+[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+}
+[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+[data-theme="light"] .preset-btn.active {
+  background: rgba(30, 138, 107, 0.12);
+  border-color: rgba(30, 138, 107, 0.4);
+}
+
+[data-theme="light"] .radio-card input:checked + .radio-card-inner {
+  background: rgba(30, 138, 107, 0.1);
+  border-color: rgba(30, 138, 107, 0.4);
+  box-shadow: 0 0 12px rgba(30, 138, 107, 0.06);
+}
+
+[data-theme="light"] .toggle-switch input:checked + .toggle-slider {
+  background: rgba(30, 138, 107, 0.35);
+}
+
+[data-theme="light"] .send-test-wrapper {
+  background: rgba(30, 138, 107, 0.06);
+  border-color: rgba(30, 138, 107, 0.12);
+}
+
+[data-theme="light"] .header-badge {
+  background: rgba(30, 138, 107, 0.08);
+  border-color: rgba(30, 138, 107, 0.18);
+}
+
+[data-theme="light"] .export-option:hover {
+  background: rgba(30, 138, 107, 0.1);
+}
+
+[data-theme="light"] .btn-primary {
+  color: #ffffff;
+}
+
+[data-theme="light"] .terminal-header {
+  background: rgba(218, 218, 230, 0.9);
+}
+
+[data-theme="light"] .log-line:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+/* Theme toggle button */
+#theme-toggle {
+  position: relative;
+}
+
+#theme-toggle .theme-icon-moon {
+  display: none;
+}
+
+[data-theme="light"] #theme-toggle .theme-icon-sun {
+  display: none;
+}
+
+[data-theme="light"] #theme-toggle .theme-icon-moon {
+  display: block;
+}
+
+/* --- Log timing badge --- */
+.log-timing {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  opacity: 0.7;
+  white-space: nowrap;
+  flex-shrink: 0;
+  padding-top: 2px;
 }

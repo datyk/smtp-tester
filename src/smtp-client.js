@@ -1,8 +1,9 @@
 import { connect } from 'cloudflare:sockets';
 
 /**
- * SMTP Client — performs SMTP test sessions over TCP.
+ * SMTP Client v2.0 — performs SMTP test sessions over TCP.
  * Uses Cloudflare Workers connect() API for raw TCP connections.
+ * Supports: none, ssl, tls (STARTTLS).
  */
 
 const SMTP_TIMEOUT = 15000; // 15 seconds per command
@@ -17,9 +18,9 @@ const TEST_EMAIL_BODY = [
   'Message-ID: <smtp-test-{ID}@tyk.app>',
   'MIME-Version: 1.0',
   'Content-Type: text/plain; charset=UTF-8',
-  'X-Mailer: SMTP-Tester/1.0 (https://smtp-tester.tyk.app)',
+  'X-Mailer: SMTP-Tester/2.0 (https://smtp.tyk.app)',
   '',
-  'This is an automated test email sent by SMTP Tester (https://smtp-tester.tyk.app).',
+  'This is an automated test email sent by SMTP Tester (https://smtp.tyk.app).',
   'If you received this message, the SMTP connection test was successful.',
   '',
   '---',
@@ -39,17 +40,31 @@ export async function runSmtpTest(config, stream) {
   let reader = null;
   let writer = null;
   let buffer = '';
+  let cmdStart = Date.now();
 
   const decoder = new TextDecoder();
   const encoder = new TextEncoder();
 
+  /**
+   * Emit with elapsed time tracking.
+   */
+  async function emitTimed(type, data) {
+    const elapsed = Date.now() - cmdStart;
+    await stream.emit(type, data, elapsed);
+  }
+
+  function resetTimer() {
+    cmdStart = Date.now();
+  }
+
   try {
     // --- 1. Determine TLS mode ---
+    // Map our security options to Cloudflare's secureTransport values
     let secureTransport;
     if (security === 'ssl') {
       secureTransport = 'on';
       await stream.emit('info', `Connecting to ${host}:${port} with implicit SSL/TLS...`);
-    } else if (security === 'starttls') {
+    } else if (security === 'tls') {
       secureTransport = 'starttls';
       await stream.emit('info', `Connecting to ${host}:${port} (STARTTLS upgrade planned)...`);
     } else {
@@ -58,6 +73,7 @@ export async function runSmtpTest(config, stream) {
     }
 
     // --- 2. Open TCP connection ---
+    resetTimer();
     socket = connect(
       { hostname: host, port: parseInt(port) },
       { secureTransport }
@@ -66,7 +82,7 @@ export async function runSmtpTest(config, stream) {
     writer = socket.writable.getWriter();
     reader = socket.readable.getReader();
 
-    await stream.emit('tls', `TCP connection established (transport: ${secureTransport})`);
+    await emitTimed('tls', `TCP connection established (transport: ${secureTransport})`);
 
     // --- 3. Determine EHLO domain ---
     let ehloDomain = FALLBACK_DOMAIN;
@@ -75,9 +91,10 @@ export async function runSmtpTest(config, stream) {
     }
 
     // --- 4. Read server greeting ---
+    resetTimer();
     const greeting = await readResponse(reader, decoder, buffer);
     buffer = greeting.remaining;
-    await stream.emit('received', greeting.response);
+    await emitTimed('received', greeting.response);
 
     if (!greeting.response.startsWith('220')) {
       await stream.emit('error', `Server did not send 220 greeting. Got: ${greeting.response}`);
@@ -85,28 +102,31 @@ export async function runSmtpTest(config, stream) {
     }
 
     // --- 5. Send EHLO ---
+    resetTimer();
     await sendCommand(writer, encoder, `EHLO ${ehloDomain}`, stream);
     const ehloResp = await readResponse(reader, decoder, buffer);
     buffer = ehloResp.remaining;
-    await stream.emit('received', ehloResp.response);
+    await emitTimed('received', ehloResp.response);
 
     if (!ehloResp.response.startsWith('250')) {
       await stream.emit('error', `EHLO rejected: ${ehloResp.response}`);
       return;
     }
 
-    // --- 5. STARTTLS upgrade ---
-    if (security === 'starttls') {
+    // --- 6. STARTTLS upgrade (for 'tls' and 'tls-available' modes) ---
+    if (security === 'tls') {
       // Check if server supports STARTTLS
       if (!ehloResp.response.toUpperCase().includes('STARTTLS')) {
         await stream.emit('error', 'Server does not advertise STARTTLS support');
         return;
       }
 
+      // Server supports STARTTLS — upgrade
+      resetTimer();
       await sendCommand(writer, encoder, 'STARTTLS', stream);
       const starttlsResp = await readResponse(reader, decoder, buffer);
       buffer = starttlsResp.remaining;
-      await stream.emit('received', starttlsResp.response);
+      await emitTimed('received', starttlsResp.response);
 
       if (!starttlsResp.response.startsWith('220')) {
         await stream.emit('error', `STARTTLS rejected: ${starttlsResp.response}`);
@@ -118,9 +138,10 @@ export async function runSmtpTest(config, stream) {
       writer.releaseLock();
 
       // Upgrade to TLS
+      resetTimer();
       await stream.emit('tls', 'Upgrading connection to TLS...');
       socket = socket.startTls();
-      await stream.emit('tls', 'TLS handshake completed successfully');
+      await emitTimed('tls', 'TLS handshake completed successfully');
 
       // Get new reader/writer from the secure socket
       writer = socket.writable.getWriter();
@@ -128,10 +149,11 @@ export async function runSmtpTest(config, stream) {
       buffer = '';
 
       // Re-send EHLO after TLS upgrade
+      resetTimer();
       await sendCommand(writer, encoder, `EHLO ${ehloDomain}`, stream);
       const ehlo2Resp = await readResponse(reader, decoder, buffer);
       buffer = ehlo2Resp.remaining;
-      await stream.emit('received', ehlo2Resp.response);
+      await emitTimed('received', ehlo2Resp.response);
 
       if (!ehlo2Resp.response.startsWith('250')) {
         await stream.emit('error', `Post-TLS EHLO rejected: ${ehlo2Resp.response}`);
@@ -139,39 +161,38 @@ export async function runSmtpTest(config, stream) {
       }
     }
 
-    // --- 6. Authentication ---
+    // --- 7. Authentication ---
     if (auth && username && password) {
-      // Determine auth method from EHLO response
-      const lastEhlo = security === 'starttls'
-        ? buffer  // We already consumed it
-        : ehloResp.response;
-
       // Try AUTH PLAIN first, fall back to LOGIN
       if (ehloResp.response.toUpperCase().includes('AUTH') &&
           ehloResp.response.toUpperCase().includes('PLAIN')) {
         await stream.emit('info', 'Authenticating with AUTH PLAIN...');
+        resetTimer();
         const credentials = btoa(`\0${username}\0${password}`);
         await sendCommand(writer, encoder, `AUTH PLAIN ${credentials}`, stream, true);
       } else {
         await stream.emit('info', 'Authenticating with AUTH LOGIN...');
+        resetTimer();
         await sendCommand(writer, encoder, 'AUTH LOGIN', stream);
         const loginPrompt = await readResponse(reader, decoder, buffer);
         buffer = loginPrompt.remaining;
-        await stream.emit('received', loginPrompt.response);
+        await emitTimed('received', loginPrompt.response);
 
         // Send username (base64)
+        resetTimer();
         await sendCommand(writer, encoder, btoa(username), stream, true);
         const userResp = await readResponse(reader, decoder, buffer);
         buffer = userResp.remaining;
-        await stream.emit('received', userResp.response);
+        await emitTimed('received', userResp.response);
 
         // Send password (base64)
+        resetTimer();
         await sendCommand(writer, encoder, btoa(password), stream, true);
       }
 
       const authResp = await readResponse(reader, decoder, buffer);
       buffer = authResp.remaining;
-      await stream.emit('received', authResp.response);
+      await emitTimed('received', authResp.response);
 
       if (!authResp.response.startsWith('235')) {
         await stream.emit('error', `Authentication failed: ${authResp.response}`);
@@ -181,24 +202,27 @@ export async function runSmtpTest(config, stream) {
       }
     }
 
-    // --- 7. MAIL FROM / RCPT TO / DATA (optional) ---
+    // --- 8. MAIL FROM / RCPT TO / DATA (optional) ---
     if (mailFrom && rcptTo) {
+      resetTimer();
       await sendCommand(writer, encoder, `MAIL FROM:<${mailFrom}>`, stream);
       const mailResp = await readResponse(reader, decoder, buffer);
       buffer = mailResp.remaining;
-      await stream.emit('received', mailResp.response);
+      await emitTimed('received', mailResp.response);
 
       if (mailResp.response.startsWith('250')) {
+        resetTimer();
         await sendCommand(writer, encoder, `RCPT TO:<${rcptTo}>`, stream);
         const rcptResp = await readResponse(reader, decoder, buffer);
         buffer = rcptResp.remaining;
-        await stream.emit('received', rcptResp.response);
+        await emitTimed('received', rcptResp.response);
 
         if (rcptResp.response.startsWith('250') && sendTestEmail) {
+          resetTimer();
           await sendCommand(writer, encoder, 'DATA', stream);
           const dataResp = await readResponse(reader, decoder, buffer);
           buffer = dataResp.remaining;
-          await stream.emit('received', dataResp.response);
+          await emitTimed('received', dataResp.response);
 
           if (dataResp.response.startsWith('354')) {
             // Build the fixed test email
@@ -210,13 +234,14 @@ export async function runSmtpTest(config, stream) {
               .replace('{DATE}', date)
               .replace('{ID}', msgId);
 
-            await stream.emit('info', 'Sending fixed test email body...');
+            resetTimer();
+            await stream.emit('info', 'Sending test email body...');
             await stream.emit('sent', `[Email body: ${body.length} bytes]`);
             await writer.write(encoder.encode(body + '\r\n.\r\n'));
 
             const sendResp = await readResponse(reader, decoder, buffer);
             buffer = sendResp.remaining;
-            await stream.emit('received', sendResp.response);
+            await emitTimed('received', sendResp.response);
 
             if (sendResp.response.startsWith('250')) {
               await stream.emit('info', 'Test email sent successfully!');
@@ -228,11 +253,12 @@ export async function runSmtpTest(config, stream) {
       }
     }
 
-    // --- 8. QUIT ---
+    // --- 9. QUIT ---
+    resetTimer();
     await sendCommand(writer, encoder, 'QUIT', stream);
     try {
       const quitResp = await readResponse(reader, decoder, buffer);
-      await stream.emit('received', quitResp.response);
+      await emitTimed('received', quitResp.response);
     } catch (e) {
       // Server may close connection immediately after QUIT
       await stream.emit('info', 'Server closed connection');

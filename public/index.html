@@ -1,14 +1,15 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SMTP Tester — by tyk.no</title>
   <meta name="description" content="A professional SMTP protocol testing tool with real-time conversation streaming.">
-  <meta name="theme-color" content="#0b0e14">
+  <meta name="theme-color" content="#12121a">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'self'; connect-src 'self'">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
@@ -22,11 +23,19 @@
         </div>
         <div>
           <h1>SMTP Tester</h1>
-          <p class="header-subtitle">Live protocol diagnostics by tyk.no</p>
+          <p class="header-subtitle">Live protocol diagnostics by <a href="https://tyk.no" target="_blank" rel="noopener" style="color: var(--text-link); text-decoration: none;">tyk.no</a></p>
         </div>
       </div>
       <div class="header-meta">
-        <span class="header-badge">v1.1.0</span>
+        <span class="header-badge">v2.0.0</span>
+        <button type="button" id="theme-toggle" class="btn-icon-action" title="Toggle theme" aria-label="Toggle light/dark mode">
+          <svg class="theme-icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15">
+            <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+          </svg>
+          <svg class="theme-icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+        </button>
       </div>
     </div>
   </header>
@@ -50,7 +59,7 @@
           <h3 class="form-section-title">Server</h3>
           <div class="form-group">
             <label for="smtp-host">SMTP Host</label>
-            <input type="text" id="smtp-host" placeholder="mail.example.com" required>
+            <input type="text" id="smtp-host" placeholder="mail.example.com" required maxlength="253">
           </div>
 
           <div class="form-row">
@@ -59,8 +68,9 @@
               <input type="number" id="smtp-port" value="587" min="1" max="65535" required>
             </div>
             <div class="port-presets">
+              <button type="button" class="preset-btn" data-port="25" data-security="none">25</button>
               <button type="button" class="preset-btn" data-port="465" data-security="ssl">465</button>
-              <button type="button" class="preset-btn active" data-port="587" data-security="starttls">587</button>
+              <button type="button" class="preset-btn active" data-port="587" data-security="tls">587</button>
               <button type="button" class="preset-btn" data-port="2525" data-security="none">2525</button>
             </div>
           </div>
@@ -75,20 +85,21 @@
                   <span class="radio-card-label">None</span>
                 </span>
               </label>
-              <label class="radio-card" id="security-starttls-card">
-                <input type="radio" name="security" value="starttls" id="security-starttls" checked>
-                <span class="radio-card-inner">
-                  <span class="radio-card-icon">🔄</span>
-                  <span class="radio-card-label">STARTTLS</span>
-                </span>
-              </label>
               <label class="radio-card" id="security-ssl-card">
                 <input type="radio" name="security" value="ssl" id="security-ssl">
                 <span class="radio-card-inner">
                   <span class="radio-card-icon">🔒</span>
-                  <span class="radio-card-label">SSL/TLS</span>
+                  <span class="radio-card-label">SSL</span>
                 </span>
               </label>
+              <label class="radio-card" id="security-tls-card">
+                <input type="radio" name="security" value="tls" id="security-tls" checked>
+                <span class="radio-card-inner">
+                  <span class="radio-card-icon">🔐</span>
+                  <span class="radio-card-label">TLS</span>
+                </span>
+              </label>
+
             </div>
           </div>
         </div>
@@ -98,42 +109,45 @@
           <h3 class="form-section-title">
             Authentication
             <label class="toggle-switch" for="auth-toggle">
-              <input type="checkbox" id="auth-toggle">
+              <input type="checkbox" id="auth-toggle" checked>
               <span class="toggle-slider"></span>
             </label>
           </h3>
 
-          <div id="auth-fields" class="auth-fields hidden">
+          <div id="auth-fields" class="auth-fields">
             <div class="form-group">
               <label for="smtp-username">Username</label>
-              <input type="text" id="smtp-username" placeholder="user@example.com" autocomplete="off">
+              <input type="text" id="smtp-username" placeholder="user@example.com" autocomplete="off" maxlength="256">
             </div>
             <div class="form-group">
               <label for="smtp-password">Password</label>
-              <input type="password" id="smtp-password" placeholder="••••••••" autocomplete="new-password">
+              <input type="password" id="smtp-password" placeholder="••••••••" autocomplete="new-password" maxlength="256">
             </div>
           </div>
         </div>
 
-        <!-- Envelope Section -->
+        <!-- Message Section -->
         <div class="form-section">
-          <h3 class="form-section-title">Envelope</h3>
+          <h3 class="form-section-title">Message</h3>
 
           <div class="form-group">
             <label for="smtp-mail-from">MAIL FROM</label>
-            <input type="email" id="smtp-mail-from" placeholder="sender@example.com" required>
+            <input type="email" id="smtp-mail-from" placeholder="sender@example.com" required maxlength="254">
           </div>
           <div class="form-group">
-            <label for="smtp-rcpt-to">RCPT TO</label>
-            <input type="email" id="smtp-rcpt-to" placeholder="recipient@example.com" required>
+            <label for="smtp-rcpt-to">SEND TO</label>
+            <input type="email" id="smtp-rcpt-to" placeholder="recipient@example.com" required maxlength="254">
           </div>
 
           <div id="send-test-wrapper" class="send-test-wrapper">
-            <label class="checkbox-row" for="send-test-email">
-              <input type="checkbox" id="send-test-email">
-              <span>Send a fixed test email</span>
-            </label>
-            <p class="form-hint">Sends a non-customizable verification email to prevent abuse.</p>
+            <div class="send-test-toggle-row">
+              <span class="send-test-label">Send test email</span>
+              <label class="toggle-switch" for="send-test-email">
+                <input type="checkbox" id="send-test-email">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <p class="form-hint">Sends a standard test email to Send To.</p>
           </div>
         </div>
 
@@ -145,7 +159,7 @@
           </svg>
           <div>
             <strong>Port 25 is blocked</strong>
-            <p>Cloudflare Workers cannot connect to port 25. Use port 587 (STARTTLS) or 465 (SSL/TLS) instead.</p>
+            <p>Cloudflare Workers cannot connect to port 25. Use port 587 (TLS) or 465 (SSL) instead.</p>
           </div>
         </div>
 
@@ -165,11 +179,6 @@
     <section id="terminal-panel">
       <div class="terminal-header">
         <div class="terminal-title">
-          <div class="terminal-dots">
-            <span class="dot dot-red"></span>
-            <span class="dot dot-yellow"></span>
-            <span class="dot dot-green"></span>
-          </div>
           <span>SMTP Conversation</span>
         </div>
         <div class="terminal-actions">
@@ -177,8 +186,13 @@
             <span class="status-dot"></span>
             <span class="status-text">Ready</span>
           </div>
+          <button type="button" id="btn-copy" class="btn-icon-action" title="Copy log to clipboard" aria-label="Copy log to clipboard" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+            </svg>
+          </button>
           <div class="export-dropdown" id="export-dropdown">
-            <button type="button" id="btn-export" class="btn-icon-action" title="Export conversation" disabled>
+            <button type="button" id="btn-export" class="btn-icon-action" title="Export conversation" aria-label="Export conversation" disabled>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                 <polyline points="7 10 12 15 17 10"/>
@@ -200,7 +214,7 @@
               </button>
             </div>
           </div>
-          <button type="button" id="btn-clear" class="btn-icon-action" title="Clear log">
+          <button type="button" id="btn-clear" class="btn-icon-action" title="Clear log" aria-label="Clear log">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polyline points="3 6 5 6 21 6"/>
               <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
@@ -209,7 +223,7 @@
         </div>
       </div>
 
-      <div id="terminal-body" class="terminal-body">
+      <div id="terminal-body" class="terminal-body" role="log" aria-live="polite" aria-label="SMTP conversation log">
         <div id="terminal-log" class="terminal-log">
           <div class="terminal-welcome">
             <p>Welcome to <strong>SMTP Tester</strong></p>

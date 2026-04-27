@@ -15,13 +15,17 @@ export class StreamHandler {
    * Emit an SSE event to the stream.
    * @param {"sent"|"received"|"info"|"error"|"tls"|"complete"} type
    * @param {string} data
+   * @param {number} [elapsed] - Optional elapsed time in ms
    */
-  async emit(type, data) {
+  async emit(type, data, elapsed) {
     const event = {
       type,
       timestamp: new Date().toISOString(),
       data: data.replace(/\r?\n$/, ''),
     };
+    if (elapsed !== undefined) {
+      event.elapsed = elapsed;
+    }
     this.events.push(event);
 
     const line = `data: ${JSON.stringify(event)}\n\n`;
