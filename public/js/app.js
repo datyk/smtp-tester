@@ -20,7 +20,6 @@
   const rcptToInput = document.getElementById('smtp-rcpt-to');
   const sendTestWrapper = document.getElementById('send-test-wrapper');
   const sendTestCheckbox = document.getElementById('send-test-email');
-  const port25Warning = document.getElementById('port25-warning');
   const btnTest = document.getElementById('btn-test');
   const btnExport = document.getElementById('btn-export');
   const btnClear = document.getElementById('btn-clear');
@@ -44,7 +43,7 @@
   function initTheme() {
     const saved = localStorage.getItem('smtp-theme');
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const theme = saved || (prefersDark ? 'dark' : 'dark'); // Default to dark
+    const theme = saved || (prefersDark ? 'dark' : 'light');
     document.documentElement.setAttribute('data-theme', theme);
   }
 
@@ -68,8 +67,6 @@
 
       presetBtns.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-
-      checkPort25();
     });
   });
 
@@ -81,23 +78,15 @@
     presetBtns.forEach(btn => {
       btn.classList.toggle('active', parseInt(btn.dataset.port) === port);
     });
-
-    checkPort25();
   });
 
   // --- Security change ---
   securityRadios.forEach(radio => {
     radio.addEventListener('change', () => {
-      checkPort25();
+      // Future: could sync port preset buttons here
     });
   });
 
-  // --- Port 25 warning ---
-  function checkPort25() {
-    const isPort25 = parseInt(portInput.value) === 25;
-    port25Warning.classList.toggle('hidden', !isPort25);
-    btnTest.disabled = isPort25 && !isRunning;
-  }
 
   // --- Auth toggle ---
   authToggle.addEventListener('change', () => {
@@ -383,14 +372,31 @@
     btnCopy.disabled = true;
     setStatus('', 'Ready');
 
-    // Re-add welcome message
+    // Re-add welcome message (using DOM methods for XSS consistency)
     const welcome = document.createElement('div');
     welcome.className = 'terminal-welcome';
-    welcome.innerHTML = `
-      <p>Welcome to <strong>SMTP Tester</strong></p>
-      <p class="dim">Configure your SMTP server settings and click <strong>Run Test</strong> to start.</p>
-      <p class="dim">The SMTP conversation will appear here in real-time.</p>
-    `;
+
+    const p1 = document.createElement('p');
+    const strong1 = document.createElement('strong');
+    strong1.textContent = 'SMTP Tester';
+    p1.textContent = 'Welcome to ';
+    p1.appendChild(strong1);
+
+    const p2 = document.createElement('p');
+    p2.className = 'dim';
+    const strong2 = document.createElement('strong');
+    strong2.textContent = 'Run Test';
+    p2.textContent = 'Configure your SMTP server settings and click ';
+    p2.appendChild(strong2);
+    p2.appendChild(document.createTextNode(' to start.'));
+
+    const p3 = document.createElement('p');
+    p3.className = 'dim';
+    p3.textContent = 'The SMTP conversation will appear here in real-time.';
+
+    welcome.appendChild(p1);
+    welcome.appendChild(p2);
+    welcome.appendChild(p3);
     terminalLog.appendChild(welcome);
   }
 
@@ -417,5 +423,4 @@
   });
 
   // --- Initial state ---
-  checkPort25();
 })();

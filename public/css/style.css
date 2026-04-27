@@ -14,7 +14,6 @@
   --bg-primary: #12121a;
   --bg-secondary: #181822;
   --bg-card: rgba(24, 24, 38, 0.7);
-  --bg-card-hover: rgba(30, 30, 46, 0.8);
   --bg-input: rgba(10, 10, 18, 0.8);
   --bg-terminal: #0a0a14;
 
@@ -31,8 +30,6 @@
   --text-link: #98e8cd;
 
   /* Accent gradient */
-  --gradient-accent: linear-gradient(135deg, #98e8cd 0%, #6ec4a8 100%);
-  --gradient-header: linear-gradient(135deg, #12121a 0%, #1c1c2a 100%);
   --gradient-btn: linear-gradient(135deg, #98e8cd 0%, #6ec4a8 100%);
   --gradient-btn-hover: linear-gradient(135deg, #aeefd8 0%, #82d4b8 100%);
 
@@ -150,6 +147,15 @@ body {
   letter-spacing: 0.02em;
 }
 
+.header-link {
+  color: var(--text-link);
+  text-decoration: none;
+}
+
+.header-link:hover {
+  text-decoration: underline;
+}
+
 .header-badge {
   font-family: var(--font-mono);
   font-size: 0.7rem;
@@ -240,16 +246,7 @@ body {
   justify-content: space-between;
 }
 
-.optional-badge {
-  font-size: 0.65rem;
-  font-weight: 400;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  padding: 0.15rem 0.5rem;
-  background: rgba(99, 115, 155, 0.1);
-  border-radius: 10px;
-}
+
 
 .form-group {
   margin-bottom: 0.75rem;
@@ -281,7 +278,7 @@ body {
 
 .form-group input:focus {
   border-color: var(--border-input-focus);
-  box-shadow: 0 0 0 3px rgba(99, 140, 255, 0.1);
+  box-shadow: 0 0 0 3px rgba(152, 232, 205, 0.15);
 }
 
 .form-group input::placeholder {
@@ -456,15 +453,13 @@ body {
   border-radius: var(--radius-sm);
 }
 
-.send-test-wrapper.hidden {
-  display: none;
-}
+
 
 .form-hint {
   font-size: 0.7rem;
   color: var(--text-muted);
   margin-top: 0.3rem;
-  padding-left: 1.6rem;
+  padding-left: 0.25rem;
 }
 
 /* Warning banner */
@@ -588,7 +583,7 @@ body {
   color: var(--text-secondary);
 }
 
-/* macOS dots removed in v2.0 */
+
 
 .terminal-actions {
   display: flex;
@@ -736,7 +731,6 @@ body {
 .terminal-log {
   display: flex;
   flex-direction: column;
-  gap: 0;
 }
 
 /* Welcome message */
@@ -894,7 +888,6 @@ body {
   --bg-primary: #e4e4ec;
   --bg-secondary: #d8d8e2;
   --bg-card: rgba(230, 230, 240, 0.85);
-  --bg-card-hover: rgba(220, 220, 232, 0.9);
   --bg-input: rgba(215, 215, 228, 0.9);
   --bg-terminal: #eaeaf0;
   --text-primary: #1a1a2e;
@@ -905,8 +898,6 @@ body {
   --border-glow: rgba(30, 138, 107, 0.25);
   --border-input: rgba(0, 0, 0, 0.15);
   --border-input-focus: rgba(30, 138, 107, 0.6);
-  --gradient-accent: linear-gradient(135deg, #1e8a6b 0%, #167a5c 100%);
-  --gradient-header: linear-gradient(135deg, #e4e4ec 0%, #d8d8e2 100%);
   --gradient-btn: linear-gradient(135deg, #1e8a6b 0%, #167a5c 100%);
   --gradient-btn-hover: linear-gradient(135deg, #259e7a 0%, #1c9068 100%);
   --color-sent: #167a5c;

@@ -7,6 +7,8 @@
   <meta name="description" content="A professional SMTP protocol testing tool with real-time conversation streaming.">
   <meta name="theme-color" content="#12121a">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'self'; connect-src 'self'">
+  <meta name="robots" content="index, follow">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -23,7 +25,7 @@
         </div>
         <div>
           <h1>SMTP Tester</h1>
-          <p class="header-subtitle">Live protocol diagnostics by <a href="https://tyk.no" target="_blank" rel="noopener" style="color: var(--text-link); text-decoration: none;">tyk.no</a></p>
+          <p class="header-subtitle">Live protocol diagnostics by <a href="https://tyk.no" target="_blank" rel="noopener" class="header-link">tyk.no</a></p>
         </div>
       </div>
       <div class="header-meta">
@@ -68,7 +70,6 @@
               <input type="number" id="smtp-port" value="587" min="1" max="65535" required>
             </div>
             <div class="port-presets">
-              <button type="button" class="preset-btn" data-port="25" data-security="none">25</button>
               <button type="button" class="preset-btn" data-port="465" data-security="ssl">465</button>
               <button type="button" class="preset-btn active" data-port="587" data-security="tls">587</button>
               <button type="button" class="preset-btn" data-port="2525" data-security="none">2525</button>
@@ -143,7 +144,7 @@
             <div class="send-test-toggle-row">
               <span class="send-test-label">Send test email</span>
               <label class="toggle-switch" for="send-test-email">
-                <input type="checkbox" id="send-test-email">
+                <input type="checkbox" id="send-test-email" checked>
                 <span class="toggle-slider"></span>
               </label>
             </div>
@@ -151,17 +152,6 @@
           </div>
         </div>
 
-        <!-- Port 25 Warning -->
-        <div id="port25-warning" class="warning-banner hidden">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="warning-icon">
-            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-            <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
-          </svg>
-          <div>
-            <strong>Port 25 is blocked</strong>
-            <p>Cloudflare Workers cannot connect to port 25. Use port 587 (TLS) or 465 (SSL) instead.</p>
-          </div>
-        </div>
 
         <!-- Actions -->
         <div class="form-actions">

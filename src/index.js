@@ -34,6 +34,12 @@ const BLOCKED_HOST_PATTERNS = [
 // Blocked port ranges
 const BLOCKED_PORTS = new Set([25]); // Port 25 explicitly blocked
 const MIN_PORT = 25; // Ports below 25 are blocked
+const RATE_LIMIT_MAP_MAX = 10000; // Cap rate limiter entries
+
+// Valid hostname regex: DNS labels or IPv4/IPv6
+const HOSTNAME_REGEX = /^([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)*[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$/;
+const IPV4_REGEX = /^(\d{1,3}\.){3}\d{1,3}$/;
+const IPV6_REGEX = /^\[?[0-9a-fA-F:]+\]?$/;
 
 function checkRateLimit(ip) {
   const now = Date.now();
@@ -58,6 +64,14 @@ function cleanupRateLimiter() {
   for (const [ip, entry] of rateLimiter) {
     if (now - entry.windowStart > RATE_LIMIT_WINDOW * 2) {
       rateLimiter.delete(ip);
+    }
+  }
+  // Hard cap to prevent unbounded growth
+  if (rateLimiter.size > RATE_LIMIT_MAP_MAX) {
+    const excess = rateLimiter.size - RATE_LIMIT_MAP_MAX;
+    const keys = rateLimiter.keys();
+    for (let i = 0; i < excess; i++) {
+      rateLimiter.delete(keys.next().value);
     }
   }
 }
@@ -164,6 +178,14 @@ async function handleSmtpTest(request, ctx, origin) {
       { status: 400, headers: { ...headers, 'Content-Type': 'application/json' } }
     );
   }
+
+  // Basic email format validation
+  if (!config.mailFrom.includes('@') || !config.rcptTo.includes('@')) {
+    return new Response(
+      JSON.stringify({ error: 'Invalid email address format' }),
+      { status: 400, headers: { ...headers, 'Content-Type': 'application/json' } }
+    );
+  }
   if (config.username && config.username.length > 256) {
     return new Response(
       JSON.stringify({ error: 'Username too long (max 256 characters)' }),
@@ -181,6 +203,14 @@ async function handleSmtpTest(request, ctx, origin) {
   if (isBlockedHost(config.host)) {
     return new Response(
       JSON.stringify({ error: 'Connections to private/local addresses are not allowed.' }),
+      { status: 400, headers: { ...headers, 'Content-Type': 'application/json' } }
+    );
+  }
+
+  // Hostname format validation
+  if (!HOSTNAME_REGEX.test(config.host) && !IPV4_REGEX.test(config.host) && !IPV6_REGEX.test(config.host)) {
+    return new Response(
+      JSON.stringify({ error: 'Invalid hostname format' }),
       { status: 400, headers: { ...headers, 'Content-Type': 'application/json' } }
     );
   }

@@ -8,7 +8,6 @@ export class StreamHandler {
     this.readable = readable;
     this.writer = writable.getWriter();
     this.encoder = new TextEncoder();
-    this.events = [];
   }
 
   /**
@@ -26,7 +25,6 @@ export class StreamHandler {
     if (elapsed !== undefined) {
       event.elapsed = elapsed;
     }
-    this.events.push(event);
 
     const line = `data: ${JSON.stringify(event)}\n\n`;
     try {
@@ -55,7 +53,6 @@ export class StreamHandler {
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache, no-store, must-revalidate',
       'Connection': 'keep-alive',
-      'X-Content-Type-Options': 'nosniff',
       'Pragma': 'no-cache',
       'Expires': '0',
     };

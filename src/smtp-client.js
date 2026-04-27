@@ -113,7 +113,7 @@ export async function runSmtpTest(config, stream) {
       return;
     }
 
-    // --- 6. STARTTLS upgrade (for 'tls' and 'tls-available' modes) ---
+    // --- 6. STARTTLS upgrade (for 'tls' mode) ---
     if (security === 'tls') {
       // Check if server supports STARTTLS
       if (!ehloResp.response.toUpperCase().includes('STARTTLS')) {
@@ -162,10 +162,13 @@ export async function runSmtpTest(config, stream) {
     }
 
     // --- 7. Authentication ---
+    // Use post-TLS EHLO response if available (servers often only advertise AUTH after TLS)
+    const capabilitiesResp = (security === 'tls' && typeof ehlo2Resp !== 'undefined') ? ehlo2Resp : ehloResp;
+
     if (auth && username && password) {
       // Try AUTH PLAIN first, fall back to LOGIN
-      if (ehloResp.response.toUpperCase().includes('AUTH') &&
-          ehloResp.response.toUpperCase().includes('PLAIN')) {
+      if (capabilitiesResp.response.toUpperCase().includes('AUTH') &&
+          capabilitiesResp.response.toUpperCase().includes('PLAIN')) {
         await stream.emit('info', 'Authenticating with AUTH PLAIN...');
         resetTimer();
         const credentials = btoa(`\0${username}\0${password}`);
